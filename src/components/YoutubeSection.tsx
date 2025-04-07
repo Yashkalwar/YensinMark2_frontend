@@ -1,7 +1,9 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Youtube } from "lucide-react";
+import { Youtube, Play, X } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 interface YoutubeItem {
   id: number;
@@ -12,6 +14,8 @@ interface YoutubeItem {
 }
 
 const YoutubeSection = () => {
+  const [activeVideoId, setActiveVideoId] = useState<number | null>(null);
+  
   // YouTube items with matching content and URLs
   const youtubeItems: YoutubeItem[] = [
     {
@@ -41,51 +45,122 @@ const YoutubeSection = () => {
       channel: "UI Masters",
       thumbnail: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=320&h=180",
       url: "https://www.youtube.com/watch?v=MqYm3LIcpoQ"
+    },
+    {
+      id: 5,
+      title: "Next.js 13 Crash Course - Server Components",
+      channel: "Web Dev Simplified",
+      thumbnail: "https://images.unsplash.com/photo-1533073526757-2c8ca1df9f1c?auto=format&fit=crop&w=320&h=180",
+      url: "https://www.youtube.com/watch?v=Y6KDk5iyrYE"
+    },
+    {
+      id: 6,
+      title: "Mastering CSS Grid Layout",
+      channel: "Frontend Masters",
+      thumbnail: "https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?auto=format&fit=crop&w=320&h=180",
+      url: "https://www.youtube.com/watch?v=EiNiSFIPIQE"
+    },
+    {
+      id: 7,
+      title: "React Query: Complete Tutorial",
+      channel: "React Experts",
+      thumbnail: "https://images.unsplash.com/photo-1550063873-ab792950096b?auto=format&fit=crop&w=320&h=180",
+      url: "https://www.youtube.com/watch?v=novnyCaa7To"
+    },
+    {
+      id: 8,
+      title: "Building a Full Stack App with Prisma",
+      channel: "Database Pros",
+      thumbnail: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=320&h=180",
+      url: "https://www.youtube.com/watch?v=RebA5J-rlwg"
+    },
+    {
+      id: 9,
+      title: "Advanced TypeScript Patterns",
+      channel: "TypeScript Wizards",
+      thumbnail: "https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?auto=format&fit=crop&w=320&h=180",
+      url: "https://www.youtube.com/watch?v=F7O4gA0RRKc"
+    },
+    {
+      id: 10,
+      title: "Micro-Animations for Better UX",
+      channel: "UX Design Lab",
+      thumbnail: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=320&h=180",
+      url: "https://www.youtube.com/watch?v=yGbZ6ikwYhU"
     }
   ];
 
   return (
-    <div className="space-y-3 max-h-[calc(100vh-2.5rem)] overflow-y-auto pr-1">
+    <div className="space-y-3">
       <Card className="p-3 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900 dark:to-slate-900 border-0 shadow">
         <h2 className="text-md font-medium flex items-center gap-2">
           <Youtube className="h-5 w-5 text-red-600" />
-          <span className="text-slate-800 dark:text-slate-200">YouTube Videos</span>
+          <span className="text-slate-800 dark:text-slate-200">Videos</span>
         </h2>
       </Card>
       
-      <div className="grid gap-3">
+      <div className="grid gap-3 max-h-[calc(100vh-8rem)] overflow-y-auto pr-1 scrollbar scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
         {youtubeItems.map((item) => (
-          <a 
-            href={item.url} 
-            target="_blank" 
-            rel="noopener noreferrer" 
+          <div 
             key={item.id}
-            className="block group transition-transform duration-300 transform hover:-translate-y-1"
+            className="block group transition-transform duration-300 transform hover:-translate-y-1 cursor-pointer"
+            onClick={() => {
+              // Toggle video playback
+              setActiveVideoId(activeVideoId === item.id ? null : item.id);
+            }}
           >
             <Card className="overflow-hidden shadow hover:shadow-md transition-shadow duration-300 border-0">
-              <div className="relative">
-                <AspectRatio ratio={16/9} className="max-h-24">
-                  <img 
-                    src={item.thumbnail} 
-                    alt={item.title} 
-                    className="w-full h-full object-cover"
-                  />
-                </AspectRatio>
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <div className="bg-white/90 rounded-full p-2 transform scale-90 group-hover:scale-100 transition-transform duration-300">
-                    <Youtube className="h-4 w-4 text-red-600" />
+              {activeVideoId === item.id ? (
+                <div className="relative">
+                  <AspectRatio ratio={16/9}>
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={`https://www.youtube.com/embed/${new URL(item.url).searchParams.get('v') || item.url.split('/').pop()}?autoplay=1`}
+                      title="YouTube video player"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  </AspectRatio>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute top-1 right-1 h-6 w-6 bg-black/60 hover:bg-black/80 text-white rounded-full p-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveVideoId(null);
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <AspectRatio ratio={16/9}>
+                    <img 
+                      src={item.thumbnail} 
+                      alt={item.title} 
+                      className="w-full h-full object-cover"
+                    />
+                  </AspectRatio>
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="bg-white/90 rounded-full p-2 transform scale-90 group-hover:scale-100 transition-transform duration-300">
+                      <Play className="h-4 w-4 text-red-600" />
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
               
               <CardContent className="py-2 px-3 bg-white dark:bg-gray-800">
                 <h3 className="font-medium text-xs line-clamp-1 text-gray-800 dark:text-gray-200 mb-1">{item.title}</h3>
                 <p className="text-muted-foreground text-xs text-gray-500 dark:text-gray-400">{item.channel}</p>
               </CardContent>
             </Card>
-          </a>
+          </div>
         ))}
       </div>
+
     </div>
   );
 };

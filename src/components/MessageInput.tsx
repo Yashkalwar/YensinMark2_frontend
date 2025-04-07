@@ -36,16 +36,18 @@ const MessageInput = ({
           </div>
         )}
         <div className="flex items-center gap-3">
-          <SpeechInput 
-            onTranscription={(text) => setCurrentMessage(text)}
-            disabled={isLoading}
-          />
           <Input
             value={currentMessage}
             onChange={(e) => setCurrentMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type something..."
             className="flex-grow border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus-visible:ring-blue-500"
+            disabled={isLoading}
+          />
+          
+          {/* Mic button */}
+          <SpeechInput 
+            onTranscription={(text) => setCurrentMessage(text)}
             disabled={isLoading}
           />
           
