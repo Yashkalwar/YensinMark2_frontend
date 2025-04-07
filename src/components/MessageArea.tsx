@@ -2,7 +2,16 @@
 import { useRef, useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bot, User, BookOpen, Stethoscope, HeartHandshake, UserRound, Volume2, VolumeX } from "lucide-react";
+import { 
+  Bot, 
+  User, 
+  Sparkles, // For orchestrator
+  GraduationCap, // For study_manager
+  DollarSign, // For finance_manager
+  Stethoscope, // For health_manager
+  Volume2, 
+  VolumeX 
+} from "lucide-react";
 import { Message } from "@/types/message";
 import DOMPurify from 'dompurify';
 import { useAudio } from "@/hooks/use-audio";
@@ -13,37 +22,56 @@ interface MessageAreaProps {
   isLoading?: boolean;
 }
 
-const AgentIcon = ({ agentName }: { agentName?: string }) => {
-  switch (agentName?.toLowerCase()) {
-    case "flock":
-      return <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-300" />;
-    case "mia":
-      return <HeartHandshake className="h-6 w-6 text-amber-600 dark:text-amber-300" />;
-    case "doctor strange":
-    case "doctor_strange":
-      return <Stethoscope className="h-6 w-6 text-green-600 dark:text-green-300" />;
-    case "sara":
-      return <UserRound className="h-6 w-6 text-red-600 dark:text-red-300" />;
+interface AgentIconProps {
+  agentName?: string;
+  agentType?: string;
+}
+
+// Function to get avatar background color based on agent type
+const getAvatarBackground = (agentType?: string): string => {
+  if (!agentType) return "bg-gray-200 dark:bg-gray-700";
+  
+  const type = agentType.toLowerCase();
+  
+  // Color based on agent type
+  switch (type) {
+    case "orchestrator":
+      return "bg-purple-100 dark:bg-purple-900/30";
+    case "study_manager":
+      return "bg-blue-100 dark:bg-blue-900/30";
+    case "finance_manager":
+      return "bg-green-100 dark:bg-green-900/30";
+    case "health_manager":
+      return "bg-red-100 dark:bg-red-900/30";
     default:
-      return <Bot className="h-6 w-6 text-purple-600 dark:text-purple-300" />;
+      return "bg-gray-200 dark:bg-gray-700";
   }
 };
 
-const getAvatarBackground = (agentName?: string) => {
-  switch (agentName?.toLowerCase()) {
-    case "flock":
-      return "bg-blue-100 dark:bg-blue-900/30";
-    case "mia":
-      return "bg-amber-100 dark:bg-amber-900/30";
-    case "doctor strange":
-    case "doctor_strange":
-      return "bg-green-100 dark:bg-green-900/30";
-    case "sara":
-      return "bg-red-100 dark:bg-red-900/30";
-    default:
-      return "bg-purple-100 dark:bg-purple-900/30";
+const AgentIcon = ({ agentType }: AgentIconProps) => {
+  // Select icon based on agent type
+  if (agentType) {
+    const type = agentType.toLowerCase();
+    
+    switch (type) {
+      case "orchestrator":
+        return <Sparkles className="h-6 w-6 text-purple-600 dark:text-purple-300" />;
+      case "study_manager":
+        return <GraduationCap className="h-6 w-6 text-blue-600 dark:text-blue-300" />;
+      case "finance_manager":
+        return <DollarSign className="h-6 w-6 text-green-600 dark:text-green-300" />;
+      case "health_manager":
+        return <Stethoscope className="h-6 w-6 text-red-600 dark:text-red-300" />;
+      default:
+        return <Bot className="h-6 w-6 text-gray-600 dark:text-gray-300" />;
+    }
   }
+  
+  // Default fallback if no agent type is provided
+  return <Bot className="h-6 w-6 text-gray-600 dark:text-gray-300" />;
 };
+
+// Function removed - using the one defined above that doesn't rely on hardcoded agent names
 
 
 
@@ -115,11 +143,18 @@ const MessageArea = ({ messages, isLoading = false }: MessageAreaProps) => {
                   {/* Display only the last system response if it exists */}
                   {lastSystemResponse && (
                     <div className="flex items-start gap-3">
-                      <Avatar className="h-12 w-12 mt-1">
-                        <AvatarFallback className={getAvatarBackground(lastSystemResponse.agent_name)}>
-                          <AgentIcon agentName={lastSystemResponse.agent_name} />
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="flex flex-col items-center">
+                        <Avatar className="h-12 w-12 mb-1">
+                          <AvatarFallback className={getAvatarBackground(lastSystemResponse.agent_type)}>
+                            <AgentIcon agentType={lastSystemResponse.agent_type} />
+                          </AvatarFallback>
+                        </Avatar>
+                        {lastSystemResponse.agent_name && (
+                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                            {lastSystemResponse.agent_name}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex flex-col flex-1">
                         <div 
                           className="py-3 px-4 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-purple-100 dark:border-purple-900/30 rounded-tl-none flex-1 message-content"
@@ -130,7 +165,11 @@ const MessageArea = ({ messages, isLoading = false }: MessageAreaProps) => {
                             variant="ghost" 
                             size="sm" 
                             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                            onClick={() => handleSpeak(lastSystemResponse.text, lastSystemResponse.text.substring(0, 20))}
+                            onClick={() => {
+                              // Use voice_text if available, otherwise fall back to text
+                              const textToSpeak = lastSystemResponse.voice_text || lastSystemResponse.text;
+                              handleSpeak(textToSpeak, lastSystemResponse.text.substring(0, 20));
+                            }}
                             disabled={isSpeaking && currentlyPlaying !== lastSystemResponse.text.substring(0, 20)}
                           >
                             {currentlyPlaying === lastSystemResponse.text.substring(0, 20) ? 

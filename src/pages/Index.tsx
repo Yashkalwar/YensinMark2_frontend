@@ -59,11 +59,25 @@ const Index = () => {
       const data = await response.json();
       console.log("Received data from backend:", data);
       
-      // Handle response with or without agent_name
-      return { 
-        output: data.output, 
-        agent_name: data.agent_name || "Mia" // Default to "Mia" if agent_name is not provided
-      };
+      // Check if output is an object with final_response_to_user (new format)
+      if (data.output && typeof data.output === 'object' && data.output.final_response_to_user) {
+        console.log("Detected nested output structure with final_response_to_user");
+        return { 
+          output: data.output.final_response_to_user, 
+          agent_name: data.output.current_agent_name || "Mia",
+          agent_type: data.output.current_agent_type || "orchestrator",
+          voice_text: data.output.summarized_response || "" // Use summarized_response for audio
+        };
+      } else {
+        // Fallback to old format
+        console.log("Using direct output format");
+        return { 
+          output: data.output, 
+          agent_name: data.agent_name || "Mia", // Default to "Mia" if agent_name is not provided
+          agent_type: data.agent_type || "orchestrator", // Default to orchestrator for old format
+          voice_text: "" // No summarized response available in old format
+        };
+      }
     } catch (error) {
       console.error("Error processing message:", error);
 
@@ -106,8 +120,15 @@ const Index = () => {
         const aiMessage: Message = { 
           text: response.output, 
           isUser: false,
-          agent_name: response.agent_name
+          agent_name: response.agent_name,
+          agent_type: response.agent_type,
+          voice_text: response.voice_text || response.output // Use voice_text if available, otherwise fallback to output
         };
+        console.log("Creating AI message:", {
+          agent_name: response.agent_name,
+          agent_type: response.agent_type,
+          voice_text: response.voice_text
+        });
         setMessages((prev) => [...prev, aiMessage]);
       }
     }
