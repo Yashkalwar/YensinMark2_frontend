@@ -1,10 +1,12 @@
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bot, User, BookOpen, Stethoscope, HeartHandshake, UserRound } from "lucide-react";
+import { Bot, User, BookOpen, Stethoscope, HeartHandshake, UserRound, Volume2, VolumeX } from "lucide-react";
 import { Message } from "@/types/message";
 import DOMPurify from 'dompurify';
+import { useAudio } from "@/hooks/use-audio";
+import { Button } from "@/components/ui/button";
 
 interface MessageAreaProps {
   messages: Message[];
@@ -47,6 +49,9 @@ const getAvatarBackground = (agentName?: string) => {
 
 const MessageArea = ({ messages, isLoading = false }: MessageAreaProps) => {
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const { speakText, isLoading: isSpeaking, error: audioError } = useAudio();
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Auto-scroll to the latest message
   useEffect(() => {
@@ -54,6 +59,37 @@ const MessageArea = ({ messages, isLoading = false }: MessageAreaProps) => {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
+  // Handle text-to-speech
+  const handleSpeak = async (text: string, messageId: string) => {
+    // Stop any currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    
+    if (currentlyPlaying === messageId) {
+      setCurrentlyPlaying(null);
+      return;
+    }
+    
+    // Start new audio
+    try {
+      const audio = await speakText(text);
+      if (audio) {
+        audioRef.current = audio;
+        setCurrentlyPlaying(messageId);
+        
+        audio.onended = () => {
+          setCurrentlyPlaying(null);
+          audioRef.current = null;
+        };
+      }
+    } catch (error) {
+      console.error('Failed to play audio:', error);
+      setCurrentlyPlaying(null);
+    }
+  };
 
   // Show only the latest system response without the user's query
   return (
@@ -84,10 +120,28 @@ const MessageArea = ({ messages, isLoading = false }: MessageAreaProps) => {
                           <AgentIcon agentName={lastSystemResponse.agent_name} />
                         </AvatarFallback>
                       </Avatar>
-                      <div 
-                        className="py-3 px-4 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-purple-100 dark:border-purple-900/30 rounded-tl-none flex-1 message-content"
-                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(lastSystemResponse.text) }}
-                      />
+                      <div className="flex flex-col flex-1">
+                        <div 
+                          className="py-3 px-4 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-purple-100 dark:border-purple-900/30 rounded-tl-none flex-1 message-content"
+                          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(lastSystemResponse.text) }}
+                        />
+                        <div className="flex justify-end mt-1">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                            onClick={() => handleSpeak(lastSystemResponse.text, lastSystemResponse.text.substring(0, 20))}
+                            disabled={isSpeaking && currentlyPlaying !== lastSystemResponse.text.substring(0, 20)}
+                          >
+                            {currentlyPlaying === lastSystemResponse.text.substring(0, 20) ? 
+                              <VolumeX className="h-4 w-4" /> : 
+                              <Volume2 className="h-4 w-4" />}
+                            <span className="ml-1">
+                              {currentlyPlaying === lastSystemResponse.text.substring(0, 20) ? 'Stop' : 'Speak'}
+                            </span>
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   )}
                   

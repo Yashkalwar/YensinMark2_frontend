@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { useState } from "react";
+import SpeechInput from "./SpeechInput";
 
 interface MessageInputProps {
   currentMessage: string;
@@ -35,6 +36,10 @@ const MessageInput = ({
           </div>
         )}
         <div className="flex items-center gap-3">
+          <SpeechInput 
+            onTranscription={(text) => setCurrentMessage(text)}
+            disabled={isLoading}
+          />
           <Input
             value={currentMessage}
             onChange={(e) => setCurrentMessage(e.target.value)}
