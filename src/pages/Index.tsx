@@ -22,7 +22,7 @@ const Index = () => {
     { output: "I'm sorry, I can't connect to the backend right now. This is a fallback response.", agent_name: "Mia" },
     { output: "The backend seems to be offline. Here's a simulated response instead.", agent_name: "Flock" },
     { output: "I'm currently running in offline mode. In a real scenario, I would fetch responses from the backend.", agent_name: "Doctor Strange" },
-    { output: "Backend connection failed. Try running the local server at http://127.0.0.1:8000 for actual AI responses.", agent_name: "Sara" },
+    { output: "Backend connection failed. Try running the local server at http://51.21.162.46:8000 for actual AI responses.", agent_name: "Sara" },
     { output: "This is a placeholder message. Please ensure your backend server is running for real responses.", agent_name: "Mia" }
   ];
 
@@ -38,7 +38,7 @@ const Index = () => {
       // Increase timeout from 10 seconds to 60 seconds to give the backend more time to process
       const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-      const response = await fetch("http://127.0.0.1:8000/process-text", {
+      const response = await fetch("http://51.21.162.46:8000/process-text", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,7 +84,7 @@ const Index = () => {
       let errorDescription = "Could not connect to the AI backend. Using fallback response instead.";
 
       if (error instanceof TypeError && error.message === "Failed to fetch") {
-        errorDescription = "Could not connect to the AI backend. Please ensure the server is running at http://127.0.0.1:8000.";
+        errorDescription = "Could not connect to the AI backend. Please ensure the server is running at http://51.21.162.46:8000.";
         console.error("Failed to fetch error - backend server might not be running");
       } else if (String(error).includes("405")) {
         errorDescription = "CORS issue detected (405 Method Not Allowed). Add CORS middleware to your backend.";
