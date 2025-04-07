@@ -135,19 +135,18 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100 dark:from-gray-950 dark:to-slate-900 flex flex-col">
-      <header className="w-full bg-gradient-to-r from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-md py-4">
+    <div className="min-h-screen bg-background flex flex-col">
+      <header className="w-full bg-card border-b border-border py-4">
         <div className="relative w-full px-5">
           <div className="flex items-center justify-center">
             <div className="flex flex-col items-center relative">
-              <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 -translate-y-full w-5 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full opacity-60"></div>
-              <span className="font-bold text-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 bg-clip-text text-transparent tracking-wider drop-shadow-sm">ORBITT</span>
-              <div className="text-xs text-gray-500 dark:text-gray-400 tracking-widest uppercase mt-0.5">Let the Orbits Align</div>
+              <span className="font-medium text-3xl tracking-tight">ORBITT</span>
+              <div className="text-xs text-muted-foreground tracking-widest uppercase mt-0.5">Let the Orbits Align</div>
             </div>
           </div>
           
           <div className="absolute right-5 top-1/2 transform -translate-y-1/2">
-            <Avatar className="h-10 w-10 ring-2 ring-blue-500/50 ring-offset-2 ring-offset-slate-50 dark:ring-offset-gray-900 transition-all duration-300 hover:ring-blue-500/80">
+            <Avatar className="h-10 w-10 border border-border">
               <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&q=80" alt="Profile" />
               <AvatarFallback>OR</AvatarFallback>
             </Avatar>
@@ -161,7 +160,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              className="absolute -right-3 top-1/2 z-10 h-8 w-8 rounded-full p-0 shadow-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+              className="absolute -right-3 top-1/2 z-10 h-8 w-8 rounded-full p-0 bg-card border border-border"
               onClick={() => setLeftCollapsed(!leftCollapsed)}
             >
               {leftCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -180,7 +179,7 @@ const Index = () => {
           </div>
 
           <div className={`${leftCollapsed && rightCollapsed ? 'col-span-10' : leftCollapsed || rightCollapsed ? 'col-span-8 lg:col-span-9' : 'col-span-6 lg:col-span-8'} flex flex-col h-[calc(100vh-7.5rem)]`}>
-            <div className="flex-grow rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col shadow-xl">
+            <div className="flex-grow rounded-md bg-card border border-border overflow-hidden flex flex-col">
               <MessageArea messages={messages} isLoading={isLoading} />
               <MessageInput 
                 currentMessage={currentMessage}
@@ -195,7 +194,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              className="absolute -left-3 top-1/2 z-10 h-8 w-8 rounded-full p-0 shadow-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+              className="absolute -left-3 top-1/2 z-10 h-8 w-8 rounded-full p-0 bg-card border border-border"
               onClick={() => setRightCollapsed(!rightCollapsed)}
             >
               {rightCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}

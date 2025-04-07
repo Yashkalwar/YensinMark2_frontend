@@ -92,14 +92,14 @@ const YoutubeSection = () => {
 
   return (
     <div className="space-y-3">
-      <Card className="p-3 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900 dark:to-slate-900 border-0 shadow">
+      <Card className="p-3 bg-card border border-border">
         <h2 className="text-md font-medium flex items-center gap-2">
-          <Youtube className="h-5 w-5 text-red-600" />
-          <span className="text-slate-800 dark:text-slate-200">Videos</span>
+          <Youtube className="h-5 w-5 text-destructive" />
+          <span>Videos</span>
         </h2>
       </Card>
       
-      <div className="grid gap-3 max-h-[calc(100vh-8rem)] overflow-y-auto pr-1 scrollbar scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+      <div className="grid gap-3 max-h-[calc(100vh-8rem)] overflow-y-auto pr-1 scrollbar scrollbar-thin scrollbar-thumb-muted-foreground/40 scrollbar-track-transparent">
         {youtubeItems.map((item) => (
           <div 
             key={item.id}
@@ -109,7 +109,7 @@ const YoutubeSection = () => {
               setActiveVideoId(activeVideoId === item.id ? null : item.id);
             }}
           >
-            <Card className="overflow-hidden shadow hover:shadow-md transition-shadow duration-300 border-0">
+            <Card className="overflow-hidden border border-border hover:border-primary/30 transition-all duration-300">
               {activeVideoId === item.id ? (
                 <div className="relative">
                   <AspectRatio ratio={16/9}>
@@ -126,7 +126,7 @@ const YoutubeSection = () => {
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="absolute top-1 right-1 h-6 w-6 bg-black/60 hover:bg-black/80 text-white rounded-full p-1"
+                    className="absolute top-1 right-1 h-6 w-6 bg-background/70 hover:bg-background/90 text-foreground rounded-full p-1"
                     onClick={(e) => {
                       e.stopPropagation();
                       setActiveVideoId(null);
@@ -144,17 +144,17 @@ const YoutubeSection = () => {
                       className="w-full h-full object-cover"
                     />
                   </AspectRatio>
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <div className="bg-white/90 rounded-full p-2 transform scale-90 group-hover:scale-100 transition-transform duration-300">
-                      <Play className="h-4 w-4 text-red-600" />
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="bg-background/90 rounded-full p-2 transform scale-90 group-hover:scale-100 transition-transform duration-300">
+                      <Play className="h-4 w-4 text-destructive" />
                     </div>
                   </div>
                 </div>
               )}
               
-              <CardContent className="py-2 px-3 bg-white dark:bg-gray-800">
-                <h3 className="font-medium text-xs line-clamp-1 text-gray-800 dark:text-gray-200 mb-1">{item.title}</h3>
-                <p className="text-muted-foreground text-xs text-gray-500 dark:text-gray-400">{item.channel}</p>
+              <CardContent className="py-2 px-3 bg-card">
+                <h3 className="font-medium text-xs line-clamp-1 mb-1">{item.title}</h3>
+                <p className="text-muted-foreground text-xs">{item.channel}</p>
               </CardContent>
             </Card>
           </div>
