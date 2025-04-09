@@ -49,26 +49,49 @@ const getAvatarBackground = (agentType?: string): string => {
 };
 
 const AgentIcon = ({ agentType }: AgentIconProps) => {
-  // Select icon based on agent type
+  let imageSrc = "/images/Mia.jpg"; // Default to Mia (orchestrator)
+  let altText = "Mia";
+  
   if (agentType) {
     const type = agentType.toLowerCase();
     
     switch (type) {
       case "orchestrator":
-        return <Sparkles className="h-6 w-6 text-purple-600 dark:text-purple-300" />;
-      case "study_manager":
-        return <GraduationCap className="h-6 w-6 text-blue-600 dark:text-blue-300" />;
+        imageSrc = "/images/Mia.jpg";
+        altText = "Mia";
+        break;
       case "finance_manager":
-        return <DollarSign className="h-6 w-6 text-green-600 dark:text-green-300" />;
+        imageSrc = "/images/Flock.png";
+        altText = "Flock";
+        break;
+      case "study_manager":
+        imageSrc = "/images/Sara.png";
+        altText = "Sara";
+        break;
       case "health_manager":
-        return <Stethoscope className="h-6 w-6 text-red-600 dark:text-red-300" />;
-      default:
-        return <Bot className="h-6 w-6 text-gray-600 dark:text-gray-300" />;
+        imageSrc = "/images/doctor.png";
+        altText = "Doctor";
+        break;
     }
   }
   
-  // Default fallback if no agent type is provided
-  return <Bot className="h-6 w-6 text-gray-600 dark:text-gray-300" />;
+  return (
+    <div className="relative" style={{ width: '6rem', height: '6rem' }}>
+      <img 
+        src={imageSrc} 
+        alt={altText} 
+        className="absolute inset-0 m-auto" 
+        style={{ 
+          maxWidth: '100%',
+          maxHeight: '100%',
+          width: 'auto',
+          height: 'auto',
+          borderRadius: '50%',
+          objectPosition: 'center' 
+        }}
+      />
+    </div>
+  );
 };
 
 // Function removed - using the one defined above that doesn't rely on hardcoded agent names
@@ -142,20 +165,21 @@ const MessageArea = ({ messages, isLoading = false }: MessageAreaProps) => {
                 <>
                   {/* Display only the last system response if it exists */}
                   {lastSystemResponse && (
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-8">
+                      {/* Agent icon and name */}
                       <div className="flex flex-col items-center">
-                        <Avatar className="h-12 w-12 mb-1">
-                          <AvatarFallback className={getAvatarBackground(lastSystemResponse.agent_type)}>
-                            <AgentIcon agentType={lastSystemResponse.agent_type} />
-                          </AvatarFallback>
-                        </Avatar>
+                        <div>
+                          <AgentIcon agentType={lastSystemResponse.agent_type} />
+                        </div>
                         {lastSystemResponse.agent_name && (
-                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400 mt-2">
                             {lastSystemResponse.agent_name}
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-col flex-1">
+                      
+                      {/* Message content positioned to align with the middle of the icon */}
+                      <div className="flex flex-col flex-1" style={{ marginTop: '1rem' }}>
                         <div 
                           className="py-3 px-4 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-purple-100 dark:border-purple-900/30 rounded-tl-none flex-1 message-content"
                           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(lastSystemResponse.text) }}

@@ -21,7 +21,7 @@ const Index = () => {
   const mockResponses: BackendResponse[] = [
     { output: "I'm sorry, I can't connect to the backend right now. This is a fallback response.", agent_name: "Mia" },
     { output: "The backend seems to be offline. Here's a simulated response instead.", agent_name: "Flock" },
-    { output: "I'm currently running in offline mode. In a real scenario, I would fetch responses from the backend.", agent_name: "Doctor Strange" },
+    { output: "I'm currently running in offline mode. In a real scenario, I would fetch responses from the backend.", agent_name: "Doctor" },
     { output: "Backend connection failed. Try running the local server at http://51.21.162.46:8000 for actual AI responses.", agent_name: "Sara" },
     { output: "This is a placeholder message. Please ensure your backend server is running for real responses.", agent_name: "Mia" }
   ];
