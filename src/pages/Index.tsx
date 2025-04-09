@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CalendarSection from "@/components/CalendarSection";
 import LogsSection from "@/components/LogsSection";
 import MessageArea from "@/components/MessageArea";
 import YoutubeSection from "@/components/YoutubeSection";
 import MessageInput from "@/components/MessageInput";
+import ServerDebug from "@/components/ServerDebug";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Youtube } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -17,12 +18,24 @@ const Index = () => {
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  
+  // Determine server URL based on environment variable
+  const serverMode = import.meta.env.VITE_SERVER_MODE || 'main';
+  const serverUrl = serverMode === 'test' ? 'http://localhost:8000' : 'http://51.21.162.46:8000';
+  
+  // Log the server mode and URL on component mount
+  useEffect(() => {
+    console.log('%c SERVER CONFIG ', 'background: #222; color: #bada55; font-size: 16px;');
+    console.log(`Mode: ${serverMode}`);
+    console.log(`API URL: ${serverUrl}`);
+    console.log('%c -------------- ', 'background: #222; color: #bada55; font-size: 16px;');
+  }, [serverMode, serverUrl]);
 
   const mockResponses: BackendResponse[] = [
     { output: "I'm sorry, I can't connect to the backend right now. This is a fallback response.", agent_name: "Mia" },
     { output: "The backend seems to be offline. Here's a simulated response instead.", agent_name: "Flock" },
     { output: "I'm currently running in offline mode. In a real scenario, I would fetch responses from the backend.", agent_name: "Doctor" },
-    { output: "Backend connection failed. Try running the local server at http://51.21.162.46:8000 for actual AI responses.", agent_name: "Sara" },
+    { output: `Backend connection failed. Try running the server at ${serverUrl} for actual AI responses.`, agent_name: "Sara" },
     { output: "This is a placeholder message. Please ensure your backend server is running for real responses.", agent_name: "Mia" }
   ];
 
@@ -34,11 +47,12 @@ const Index = () => {
     setIsLoading(true);
     try {
       console.log("Sending message to backend:", userMessage);
+      console.log(`%c Using API endpoint: ${serverUrl}/process-text`, 'color: #4CAF50; font-weight: bold;');
       const controller = new AbortController();
       // Increase timeout from 10 seconds to 60 seconds to give the backend more time to process
       const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-      const response = await fetch("http://51.21.162.46:8000/process-text", {
+      const response = await fetch(`${serverUrl}/process-text`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -136,6 +150,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Server debug removed */}
       <header className="w-full bg-card border-b border-border py-4">
         <div className="relative w-full px-5">
           <div className="flex items-center justify-center">
