@@ -184,6 +184,26 @@ const MessageArea = ({ messages, isLoading = false }: MessageAreaProps) => {
                           className="py-3 px-4 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-purple-100 dark:border-purple-900/30 rounded-tl-none flex-1 message-content"
                           dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(lastSystemResponse.text) }}
                         />
+                        
+                        {/* Display base64-encoded images if available */}
+                        {lastSystemResponse.display_images && lastSystemResponse.display_images.length > 0 && (
+                          <div className="mt-3 space-y-3">
+                            {lastSystemResponse.display_images.map((imageData, index) => (
+                              <div key={index} className="rounded-lg overflow-hidden border border-purple-100 dark:border-purple-900/30 shadow-sm">
+                                <img 
+                                  src={`data:image/jpeg;base64,${imageData}`}
+                                  alt={`Generated image ${index + 1}`}
+                                  className="w-full max-h-96 object-contain"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                    console.error('Failed to load image', index);
+                                  }}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
                         <div className="flex justify-end mt-1">
                           <Button 
                             variant="ghost" 

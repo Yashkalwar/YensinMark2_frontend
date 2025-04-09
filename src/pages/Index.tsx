@@ -80,7 +80,8 @@ const Index = () => {
           output: data.output.final_response_to_user, 
           agent_name: data.output.current_agent_name || "Mia",
           agent_type: data.output.current_agent_type || "orchestrator",
-          voice_text: data.output.summarized_response || "" // Use summarized_response for audio
+          voice_text: data.output.summarized_response || "", // Use summarized_response for audio
+          display_images: data.output.display_images || [] // Extract display_images array
         };
       } else {
         // Fallback to old format
@@ -89,7 +90,8 @@ const Index = () => {
           output: data.output, 
           agent_name: data.agent_name || "Mia", // Default to "Mia" if agent_name is not provided
           agent_type: data.agent_type || "orchestrator", // Default to orchestrator for old format
-          voice_text: "" // No summarized response available in old format
+          voice_text: "", // No summarized response available in old format
+          display_images: [] // No images in old format
         };
       }
     } catch (error) {
@@ -136,7 +138,8 @@ const Index = () => {
           isUser: false,
           agent_name: response.agent_name,
           agent_type: response.agent_type,
-          voice_text: response.voice_text || response.output // Use voice_text if available, otherwise fallback to output
+          voice_text: response.voice_text || response.output, // Use voice_text if available, otherwise fallback to output
+          display_images: response.display_images // Add display_images to the message
         };
         console.log("Creating AI message:", {
           agent_name: response.agent_name,
