@@ -17,6 +17,7 @@ const Index = () => {
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { toast } = useToast();
   
   // Determine server URL based on environment variable
@@ -73,25 +74,36 @@ const Index = () => {
       const data = await response.json();
       console.log("Received data from backend:", data);
       
-      // Check if output is an object with final_response_to_user (new format)
-      if (data.output && typeof data.output === 'object' && data.output.final_response_to_user) {
-        console.log("Detected nested output structure with final_response_to_user");
-        return { 
-          output: data.output.final_response_to_user, 
+      // Process the response from your backend
+      console.log("Response format check:", data);
+      
+      // Based on actual backend response format seen in logs
+      if (data.final_response_to_user) {
+        // New format with direct fields
+        return {
+          output: data.final_response_to_user,
+          agent_name: data.current_agent_name || "Mia",
+          agent_type: data.current_agent_type || "orchestrator",
+          voice_text: data.summarized_response || "",
+          display_images: data.display_images || []
+        };
+      } else if (data.output && typeof data.output === 'object') {
+        // If output is nested
+        return {
+          output: data.output.final_response_to_user || data.output.response || "",
           agent_name: data.output.current_agent_name || "Mia",
           agent_type: data.output.current_agent_type || "orchestrator",
-          voice_text: data.output.summarized_response || "", // Use summarized_response for audio
-          display_images: data.output.display_images || [] // Extract display_images array
+          voice_text: data.output.summarized_response || "",
+          display_images: data.output.display_images || []
         };
       } else {
-        // Fallback to old format
-        console.log("Using direct output format");
+        // Fallback to basic format
         return { 
-          output: data.output, 
-          agent_name: data.agent_name || "Mia", // Default to "Mia" if agent_name is not provided
-          agent_type: data.agent_type || "orchestrator", // Default to orchestrator for old format
-          voice_text: "", // No summarized response available in old format
-          display_images: [] // No images in old format
+          output: data.output || "", 
+          agent_name: "Mia",
+          agent_type: "orchestrator",
+          voice_text: typeof data.output === 'string' ? data.output.replace(/<[^>]*>/g, '') : "",
+          display_images: []
         };
       }
     } catch (error) {
@@ -147,6 +159,8 @@ const Index = () => {
           voice_text: response.voice_text
         });
         setMessages((prev) => [...prev, aiMessage]);
+        // Trigger a refresh of calendar and logs sections after successful message processing
+        setRefreshTrigger(prev => prev + 1);
       }
     }
   };
@@ -158,7 +172,7 @@ const Index = () => {
         <div className="relative w-full px-5">
           <div className="flex items-center justify-center">
             <div className="flex flex-col items-center relative">
-              <span className="font-medium text-3xl tracking-tight">ORBITT</span>
+              <span className="font-medium text-3xl tracking-tight">ORBYTT</span>
               <div className="text-xs text-muted-foreground tracking-widest uppercase mt-0.5">Let the Orbits Align</div>
             </div>
           </div>
@@ -190,8 +204,8 @@ const Index = () => {
               </div>
             ) : (
               <div className="space-y-4 h-[calc(100vh-7.5rem)] overflow-auto">
-                <CalendarSection />
-                <LogsSection />
+                <CalendarSection refreshTrigger={refreshTrigger} />
+                <LogsSection refreshTrigger={refreshTrigger} />
               </div>
             )}
           </div>

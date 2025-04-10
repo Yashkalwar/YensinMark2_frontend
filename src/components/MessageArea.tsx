@@ -104,12 +104,88 @@ const MessageArea = ({ messages, isLoading = false }: MessageAreaProps) => {
   const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Track already played messages using a stable fingerprint
+  const playedMessagesRef = useRef(new Set<string>());
+  
+  // Store the last displayed message text to detect actual changes
+  const lastDisplayedMessageRef = useRef<string>("");
+  
   // Auto-scroll to the latest message
   useEffect(() => {
     if (messageEndRef.current) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+  
+  // Handle automatic audio playback for new messages
+  useEffect(() => {
+    // Don't process if no messages or loading
+    if (messages.length === 0) return;
+    
+    // Get the last AI message that would be displayed
+    const lastAiMessage = messages.filter(msg => !msg.isUser).pop();
+    if (!lastAiMessage) return;
+    
+    // Create a stable fingerprint of this message that won't change between renders
+    // We use text content hash to identify unique messages, not position or length
+    const messageFingerprint = lastAiMessage.text.replace(/\s+/g, ' ').trim();
+    
+    // Check if this is actually a new message compared to what we last displayed
+    // This is the critical check to avoid duplicate playback
+    if (messageFingerprint === lastDisplayedMessageRef.current) {
+      console.log("Same message still displayed, not playing audio again");
+      return;
+    }
+    
+    // Check if we've played this message before in this session
+    if (playedMessagesRef.current.has(messageFingerprint)) {
+      console.log("Already played this message before");
+      return;
+    }
+    
+    // Update our reference of the last displayed message
+    lastDisplayedMessageRef.current = messageFingerprint;
+    
+    // Mark as played
+    playedMessagesRef.current.add(messageFingerprint);
+    
+    console.log(`Playing new message: ${messageFingerprint.substring(0, 20)}...`);
+    
+    // Stop any currently playing audio first
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setCurrentlyPlaying(null);
+    }
+    
+    // Play the audio with a small delay to let UI settle
+    const textToSpeak = lastAiMessage.voice_text || lastAiMessage.text;
+    
+    // Skip empty messages
+    if (!textToSpeak || textToSpeak.trim() === '') return;
+    
+    // Use longer delay (800ms) to ensure UI is completely ready
+    const timer = setTimeout(() => {
+      speakText(textToSpeak)
+        .then(audio => {
+          if (audio) {
+            audioRef.current = audio;
+            setCurrentlyPlaying(messageFingerprint);
+            
+            audio.onended = () => {
+              setCurrentlyPlaying(null);
+              audioRef.current = null;
+            };
+          }
+        })
+        .catch(error => {
+          console.error('Failed to play audio:', error);
+          setCurrentlyPlaying(null);
+        });
+    }, 800);
+    
+    return () => clearTimeout(timer);
+  }, [messages, speakText]); // Depend on full messages array to catch actual message changes
 
   // Handle text-to-speech
   const handleSpeak = async (text: string, messageId: string) => {
@@ -156,24 +232,24 @@ const MessageArea = ({ messages, isLoading = false }: MessageAreaProps) => {
           </div>
         ) : (
           <div className="space-y-4 animate-fade-in">
-            {/* Find only the last system response */}
+            {/* Show only the last AI message */}
             {(() => {
-              // Get the last system response (if any)
-              const lastSystemResponse = messages.filter(msg => !msg.isUser).pop();
+              // Get the last AI message (if any)
+              const lastAiMessage = messages.filter(msg => !msg.isUser).pop();
               
               return (
                 <>
-                  {/* Display only the last system response if it exists */}
-                  {lastSystemResponse && (
+                  {/* Only show the last AI message */}
+                  {lastAiMessage && (
                     <div className="flex items-start gap-8">
                       {/* Agent icon and name */}
                       <div className="flex flex-col items-center">
                         <div>
-                          <AgentIcon agentType={lastSystemResponse.agent_type} />
+                          <AgentIcon agentType={lastAiMessage.agent_type} />
                         </div>
-                        {lastSystemResponse.agent_name && (
+                        {lastAiMessage.agent_name && (
                           <span className="text-sm font-medium text-gray-600 dark:text-gray-400 mt-2">
-                            {lastSystemResponse.agent_name}
+                            {lastAiMessage.agent_name}
                           </span>
                         )}
                       </div>
@@ -182,13 +258,13 @@ const MessageArea = ({ messages, isLoading = false }: MessageAreaProps) => {
                       <div className="flex flex-col flex-1" style={{ marginTop: '1rem' }}>
                         <div 
                           className="py-3 px-4 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-purple-100 dark:border-purple-900/30 rounded-tl-none flex-1 message-content"
-                          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(lastSystemResponse.text) }}
+                          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(lastAiMessage.text) }}
                         />
                         
                         {/* Display base64-encoded images if available */}
-                        {lastSystemResponse.display_images && lastSystemResponse.display_images.length > 0 && (
+                        {lastAiMessage.display_images && lastAiMessage.display_images.length > 0 && (
                           <div className="mt-3 space-y-3">
-                            {lastSystemResponse.display_images.map((imageData, index) => (
+                            {lastAiMessage.display_images.map((imageData, index) => (
                               <div key={index} className="rounded-lg overflow-hidden border border-purple-100 dark:border-purple-900/30 shadow-sm">
                                 <img 
                                   src={`data:image/jpeg;base64,${imageData}`}
@@ -204,26 +280,7 @@ const MessageArea = ({ messages, isLoading = false }: MessageAreaProps) => {
                           </div>
                         )}
                         
-                        <div className="flex justify-end mt-1">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                            onClick={() => {
-                              // Use voice_text if available, otherwise fall back to text
-                              const textToSpeak = lastSystemResponse.voice_text || lastSystemResponse.text;
-                              handleSpeak(textToSpeak, lastSystemResponse.text.substring(0, 20));
-                            }}
-                            disabled={isSpeaking && currentlyPlaying !== lastSystemResponse.text.substring(0, 20)}
-                          >
-                            {currentlyPlaying === lastSystemResponse.text.substring(0, 20) ? 
-                              <VolumeX className="h-4 w-4" /> : 
-                              <Volume2 className="h-4 w-4" />}
-                            <span className="ml-1">
-                              {currentlyPlaying === lastSystemResponse.text.substring(0, 20) ? 'Stop' : 'Speak'}
-                            </span>
-                          </Button>
-                        </div>
+                        {/* Audio plays automatically - no button needed */}
                       </div>
                     </div>
                   )}
